@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Controle Financeiro'">Controle Financeiro</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<nav th:fragment="menu(ativo)" class="menu">
+    <strong>💰 Controle Financeiro</strong>
+    <a th:href="@{/}" th:classappend="${ativo == 'mes'} ? 'ativo'">Mês</a>
+    <a th:href="@{/modelos}" th:classappend="${ativo == 'modelos'} ? 'ativo'">Contas mensais</a>
+    <a th:href="@{/dividas}" th:classappend="${ativo == 'dividas'} ? 'ativo'">Dívidas</a>
+</nav>
+</body>
+</html>

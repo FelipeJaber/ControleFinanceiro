@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: head('Contas mensais')}"></head>
+<body>
+<nav th:replace="~{layout :: menu('modelos')}"></nav>
+<main>
+    <div class="topo">
+        <h1>Contas e entradas mensais</h1>
+        <a class="btn" th:href="@{/modelos/novo}" style="margin-left:auto">+ Novo</a>
+    </div>
+    <p class="dica">
+        Cadastre aqui o que se repete todo mês. <b>Fixas</b> têm valor conhecido (aluguel, salário).
+        <b>Variáveis</b> variam a cada mês (luz, água): ao gerar o mês, nascem sem valor e você informa quando a conta chegar.
+        Depois use <b>⚙ Gerar mês</b> na tela do mês.
+    </p>
+    <p class="vazio" th:if="${modelos.isEmpty()}">Nenhuma conta mensal cadastrada.</p>
+    <table th:unless="${modelos.isEmpty()}">
+        <thead><tr><th>Descrição</th><th>Tipo</th><th>Natureza</th><th>Dia</th><th class="num">Valor / estimativa</th><th>Situação</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="m : ${modelos}" th:classappend="${!m.ativo} ? 'feito'">
+            <td th:text="${m.descricao}"></td>
+            <td><span class="tag" th:classappend="${m.tipo.name() == 'ENTRADA'} ? 'ent' : 'sai'" th:text="${m.tipo.rotulo}"></span></td>
+            <td th:text="${m.natureza.rotulo}"></td>
+            <td th:text="${m.diaVencimento}"></td>
+            <td class="num" th:text="${m.valor != null} ? ${#numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')} : '—'"></td>
+            <td>
+                <form th:action="@{/modelos/{id}/ativo(id=${m.id})}" method="post" class="inline">
+                    <button class="btn peq sec" th:text="${m.ativo} ? 'Ativo' : 'Inativo'"></button>
+                </form>
+            </td>
+            <td class="fim">
+                <a th:href="@{/modelos/{id}/editar(id=${m.id})}">editar</a>
+                <form th:action="@{/modelos/{id}/excluir(id=${m.id})}" method="post" class="inline"
+                      onsubmit="return confirm('Excluir este modelo? Lançamentos já gerados são mantidos.')"><button class="link">excluir</button></form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

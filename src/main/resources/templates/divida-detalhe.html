@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: head(${divida.descricao})}"></head>
+<body>
+<nav th:replace="~{layout :: menu('dividas')}"></nav>
+<main>
+    <div class="topo">
+        <h1 th:text="${divida.descricao}">Dívida</h1>
+        <span style="margin-left:auto">
+            <a class="btn sec" th:href="@{/dividas/{id}/editar(id=${divida.id})}">Editar</a>
+            <form th:action="@{/dividas/{id}/excluir(id=${divida.id})}" method="post" class="inline"
+                  onsubmit="return confirm('Excluir a dívida e todos os seus pagamentos?')"><button class="btn sec">Excluir</button></form>
+        </span>
+    </div>
+    <p class="dica" th:if="${divida.credor != null or divida.observacao != null}">
+        <span th:if="${divida.credor}">Credor: <b th:text="${divida.credor}"></b>. </span>
+        <span th:if="${divida.observacao}" th:text="${divida.observacao}"></span>
+    </p>
+    <section class="cards">
+        <div class="card"><span>Valor original</span><strong th:text="${#numbers.formatDecimal(divida.valorOriginal, 1, 'POINT', 2, 'COMMA')}"></strong>
+            <small th:if="${divida.dataOrigem}" th:text="'desde ' + ${#temporals.format(divida.dataOrigem, 'dd/MM/yyyy')}"></small></div>
+        <div class="card"><span>Já pago</span><strong class="pos" th:text="${#numbers.formatDecimal(divida.totalPago, 1, 'POINT', 2, 'COMMA')}"></strong></div>
+        <div class="card"><span>Saldo</span>
+            <strong th:classappend="${divida.quitada} ? 'pos' : 'neg'"
+                    th:text="${divida.quitada} ? 'Quitada' : ${#numbers.formatDecimal(divida.saldo, 1, 'POINT', 2, 'COMMA')}"></strong></div>
+    </section>
+
+    <h2>Registrar pagamento</h2>
+    <form th:action="@{/dividas/{id}/pagamentos(id=${divida.id})}" th:object="${pagamento}" method="post" class="linha">
+        <label>Data <input type="date" th:field="*{data}" required></label>
+        <label>Valor (R$) <input type="number" th:field="*{valor}" step="0.01" min="0.01" required></label>
+        <label>Observação <input type="text" th:field="*{observacao}"></label>
+        <button class="btn">Registrar</button>
+    </form>
+    <p class="erro" th:if="${#fields.hasErrors('${pagamento.*}')}">
+        <span th:each="e : ${#fields.errors('${pagamento.*}')}" th:text="${e} + ' '"></span>
+    </p>
+    <p class="dica">Os pagamentos entram como saída no mês em que foram feitos.</p>
+
+    <h2>Pagamentos</h2>
+    <p class="vazio" th:if="${divida.pagamentos.isEmpty()}">Nenhum pagamento registrado.</p>
+    <table th:unless="${divida.pagamentos.isEmpty()}">
+        <thead><tr><th>Data</th><th class="num">Valor</th><th>Observação</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="p : ${divida.pagamentos}">
+            <td th:text="${#temporals.format(p.data, 'dd/MM/yyyy')}"></td>
+            <td class="num" th:text="${#numbers.formatDecimal(p.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+            <td th:text="${p.observacao}"></td>
+            <td class="fim">
+                <form th:action="@{/dividas/{id}/pagamentos/{pid}/excluir(id=${divida.id},pid=${p.id})}" method="post" class="inline"
+                      onsubmit="return confirm('Excluir este pagamento?')"><button class="link">excluir</button></form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

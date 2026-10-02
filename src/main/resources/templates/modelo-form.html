@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: head('Conta mensal')}"></head>
+<body>
+<nav th:replace="~{layout :: menu('modelos')}"></nav>
+<main class="estreito">
+    <h1 th:text="${modelo.id == null} ? 'Nova conta/entrada mensal' : 'Editar conta/entrada mensal'">Modelo</h1>
+    <form th:action="@{/modelos}" th:object="${modelo}" method="post" class="form">
+        <input type="hidden" th:field="*{id}">
+        <label>Tipo
+            <select th:field="*{tipo}"><option th:each="t : ${tipos}" th:value="${t}" th:text="${t.rotulo}"></option></select>
+        </label>
+        <label>Natureza
+            <select th:field="*{natureza}"><option th:each="n : ${naturezas}" th:value="${n}" th:text="${n.rotulo}"></option></select>
+            <span class="erro" th:errors="*{natureza}"></span>
+        </label>
+        <label>Descrição
+            <input type="text" th:field="*{descricao}" required autofocus>
+            <span class="erro" th:errors="*{descricao}"></span>
+        </label>
+        <label>Valor (R$)
+            <input type="number" th:field="*{valor}" step="0.01" min="0">
+            <small>Obrigatório para fixas. Para variáveis é só uma estimativa opcional.</small>
+            <span class="erro" th:errors="*{valor}"></span>
+        </label>
+        <label>Dia do vencimento / recebimento
+            <input type="number" th:field="*{diaVencimento}" min="1" max="31" required>
+            <span class="erro" th:errors="*{diaVencimento}"></span>
+        </label>
+        <label class="check"><input type="checkbox" th:field="*{ativo}"> Ativo</label>
+        <div class="acoes">
+            <button class="btn">Salvar</button>
+            <a class="btn sec" th:href="@{/modelos}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

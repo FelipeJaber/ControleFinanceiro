@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: head('Dívidas')}"></head>
+<body>
+<nav th:replace="~{layout :: menu('dividas')}"></nav>
+<main>
+    <div class="topo">
+        <h1>Dívidas</h1>
+        <a class="btn" th:href="@{/dividas/nova}" style="margin-left:auto">+ Nova dívida</a>
+    </div>
+    <section class="cards">
+        <div class="card"><span>Total em aberto</span>
+            <strong class="neg" th:text="${#numbers.formatDecimal(totalEmAberto, 1, 'POINT', 2, 'COMMA')}">0,00</strong></div>
+    </section>
+    <p class="vazio" th:if="${dividas.isEmpty()}">Nenhuma dívida cadastrada.</p>
+    <table th:unless="${dividas.isEmpty()}">
+        <thead><tr><th>Descrição</th><th>Credor</th><th>Origem</th><th class="num">Original</th><th class="num">Pago</th><th class="num">Saldo</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="d : ${dividas}" th:classappend="${d.quitada} ? 'feito'">
+            <td><a th:href="@{/dividas/{id}(id=${d.id})}" th:text="${d.descricao}"></a></td>
+            <td th:text="${d.credor}"></td>
+            <td th:text="${d.dataOrigem != null} ? ${#temporals.format(d.dataOrigem, 'dd/MM/yyyy')} : '—'"></td>
+            <td class="num" th:text="${#numbers.formatDecimal(d.valorOriginal, 1, 'POINT', 2, 'COMMA')}"></td>
+            <td class="num" th:text="${#numbers.formatDecimal(d.totalPago, 1, 'POINT', 2, 'COMMA')}"></td>
+            <td class="num"><b th:text="${d.quitada} ? 'Quitada' : ${#numbers.formatDecimal(d.saldo, 1, 'POINT', 2, 'COMMA')}"></b></td>
+            <td class="fim"><a th:href="@{/dividas/{id}(id=${d.id})}">abrir</a></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

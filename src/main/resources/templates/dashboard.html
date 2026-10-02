@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout :: head(${rotuloMes})}"></head>
+<body>
+<nav th:replace="~{layout :: menu('mes')}"></nav>
+<main>
+    <div class="topo">
+        <a class="btn sec" th:href="@{/(mes=${anterior})}">&laquo;</a>
+        <h1 th:text="${rotuloMes}">Outubro de 2026</h1>
+        <a class="btn sec" th:href="@{/(mes=${proximo})}">&raquo;</a>
+        <form th:action="@{/gerar}" method="post" class="inline" style="margin-left:auto">
+            <input type="hidden" name="mes" th:value="${mes}">
+            <button class="btn" title="Cria as contas e entradas mensais cadastradas que ainda não existem neste mês">⚙ Gerar mês</button>
+        </form>
+    </div>
+
+    <p class="aviso" th:if="${aviso}" th:text="${aviso}"></p>
+    <p class="alerta" th:if="${resumo.pendentesDeValor > 0}"
+       th:text="${resumo.pendentesDeValor} + ' conta(s) variável(is) aguardando o valor do mês (não entram nos totais).'"></p>
+
+    <section class="cards">
+        <div class="card">
+            <span>Entradas</span>
+            <strong class="pos" th:text="${#numbers.formatDecimal(resumo.entradasPrevistas, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
+            <small>recebido: <span th:text="${#numbers.formatDecimal(resumo.entradasRealizadas, 1, 'POINT', 2, 'COMMA')}"></span></small>
+        </div>
+        <div class="card">
+            <span>Saídas</span>
+            <strong class="neg" th:text="${#numbers.formatDecimal(resumo.saidasPrevistas, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
+            <small>pago: <span th:text="${#numbers.formatDecimal(resumo.saidasRealizadas, 1, 'POINT', 2, 'COMMA')}"></span></small>
+        </div>
+        <div class="card">
+            <span>Saldo previsto</span>
+            <strong th:classappend="${resumo.saldoPrevisto.signum() >= 0} ? 'pos' : 'neg'"
+                    th:text="${#numbers.formatDecimal(resumo.saldoPrevisto, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
+            <small>realizado: <span th:text="${#numbers.formatDecimal(resumo.saldoRealizado, 1, 'POINT', 2, 'COMMA')}"></span></small>
+        </div>
+        <a class="card" th:href="@{/dividas}">
+            <span>Dívidas em aberto</span>
+            <strong th:classappend="${dividaEmAberto.signum() > 0} ? 'neg'"
+                    th:text="${#numbers.formatDecimal(dividaEmAberto, 1, 'POINT', 2, 'COMMA')}">0,00</strong>
+            <small>ver detalhes</small>
+        </a>
+    </section>
+
+    <div class="acoes">
+        <a class="btn" th:href="@{/lancamentos/novo(tipo='ENTRADA',natureza='ESPORADICO',mes=${mes})}">+ Entrada</a>
+        <a class="btn" th:href="@{/lancamentos/novo(tipo='SAIDA',natureza='ESPORADICO',mes=${mes})}">+ Saída</a>
+    </div>
+
+    <section th:each="nat : ${naturezas}">
+        <h2 th:text="${nat.rotulo}">Fixo mensal</h2>
+        <p class="vazio" th:if="${porNatureza.get(nat).isEmpty()}">
+            Nenhum lançamento.
+            <span th:if="${nat.name() != 'ESPORADICO'}">Cadastre em <a th:href="@{/modelos}">Contas mensais</a> e use “Gerar mês”.</span>
+        </p>
+        <table th:unless="${porNatureza.get(nat).isEmpty()}">
+            <thead><tr><th>Dia</th><th>Descrição</th><th>Tipo</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="l : ${porNatureza.get(nat)}" th:classappend="${l.efetivado} ? 'feito'">
+                <td th:text="${#temporals.format(l.data, 'dd/MM')}">05/10</td>
+                <td><span th:text="${l.descricao}"></span><small class="obs" th:if="${l.observacao}" th:text="${l.observacao}"></small></td>
+                <td><span class="tag" th:classappend="${l.tipo.name() == 'ENTRADA'} ? 'ent' : 'sai'" th:text="${l.tipo.rotulo}"></span></td>
+                <td class="num">
+                    <span th:if="${l.valor != null}" th:text="${#numbers.formatDecimal(l.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                    <form th:if="${l.valor == null}" th:action="@{/lancamentos/{id}/valor(id=${l.id})}" method="post" class="inline">
+                        <input type="number" name="valor" step="0.01" min="0" required placeholder="valor do mês" class="curto">
+                        <button class="btn peq">OK</button>
+                    </form>
+                </td>
+                <td>
+                    <form th:action="@{/lancamentos/{id}/efetivar(id=${l.id})}" method="post" class="inline">
+                        <button class="btn peq sec" th:text="${l.efetivado} ? (${l.tipo.name() == 'ENTRADA'} ? '✔ Recebido' : '✔ Pago') : (${l.tipo.name() == 'ENTRADA'} ? 'Marcar recebido' : 'Marcar pago')"></button>
+                    </form>
+                </td>
+                <td class="fim">
+                    <a th:href="@{/lancamentos/{id}/editar(id=${l.id})}">editar</a>
+                    <form th:action="@{/lancamentos/{id}/excluir(id=${l.id})}" method="post" class="inline"
+                          onsubmit="return confirm('Excluir este lançamento?')"><button class="link">excluir</button></form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section th:if="${!pagamentosDivida.isEmpty()}">
+        <h2>Pagamentos de dívidas</h2>
+        <table>
+            <thead><tr><th>Dia</th><th>Dívida</th><th class="num">Valor</th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${pagamentosDivida}" class="feito">
+                <td th:text="${#temporals.format(p.data, 'dd/MM')}"></td>
+                <td><a th:href="@{/dividas/{id}(id=${p.divida.id})}" th:text="${p.divida.descricao}"></a></td>
+                <td class="num" th:text="${#numbers.formatDecimal(p.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
