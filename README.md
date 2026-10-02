@@ -8,7 +8,7 @@ Gestão financeira pessoal local (Spring Boot + Thymeleaf + H2 em arquivo). Sem 
 mvn spring-boot:run
 ```
 
-Abra http://localhost:8080. Requer Java 21 e Maven. Os dados ficam em `./data/financeiro.mv.db` (ignorado pelo git; faça backup copiando o arquivo).
+Abra http://localhost:8081. Requer Java 21 e Maven. Os dados ficam em `./data/financeiro.mv.db` (ignorado pelo git; faça backup copiando o arquivo).
 
 ## Conceitos
 
