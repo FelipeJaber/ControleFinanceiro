@@ -5,7 +5,7 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 
 final class MesUtil {
-    static final Locale PT_BR = Locale.of("pt", "BR");
+    static final Locale PT_BR = new Locale("pt", "BR");
 
     private MesUtil() {}
 
